@@ -27,29 +27,29 @@ global.rqr.mongoose = require("mongoose");
 /*
 	global.S3 (AWS)
 */
-process.env.AWS_ACCESS_KEY_ID = global.shh.AWS.ACCESS_KEY_ID;
-process.env.AWS_SECRET_ACCESS_KEY = global.shh.AWS.SECRET_ACCESS_KEY;
-process.env.AWS_SESSION_TOKEN = global.shh.AWS.SESSION_TOKEN;
-global.S3 = require("aws-sdk/clients/s3");
-global.S3UploadToBucket = function(name, content) {
-	// bucket
-	var bucket = new global.S3({ apiVersion: "2006-03-01" });
-	var bucketParams = { Bucket: "jsjobsapi" };
-	// file
-	bucketParams.Body = content;
-	bucketParams.Key = name;
-	bucketParams.ContentType = "text/json; charset=utf-8";
-	bucketParams.ContentDisposition = "inline";
-	// upload
-	bucket.upload(bucketParams, function(err, data) {
-		if (err) {
-			global.logger.error({ "S3UploadToBucket failed to upload:": { Key: bucketParams.Key, Bucket: bucketParams.Bucket } });
-		}
-		if (data) {
-			console.log("Upload Success", data.Location);
-		}
-	});
-};
+// process.env.AWS_ACCESS_KEY_ID = global.shh.AWS.ACCESS_KEY_ID;
+// process.env.AWS_SECRET_ACCESS_KEY = global.shh.AWS.SECRET_ACCESS_KEY;
+// process.env.AWS_SESSION_TOKEN = global.shh.AWS.SESSION_TOKEN;
+// global.S3 = require("aws-sdk/clients/s3");
+// global.S3UploadToBucket = function(name, content) {
+// 	// bucket
+// 	var bucket = new global.S3({ apiVersion: "2006-03-01" });
+// 	var bucketParams = { Bucket: "jsjobsapi" };
+// 	// file
+// 	bucketParams.Body = content;
+// 	bucketParams.Key = name;
+// 	bucketParams.ContentType = "text/json; charset=utf-8";
+// 	bucketParams.ContentDisposition = "inline";
+// 	// upload
+// 	bucket.upload(bucketParams, function(err, data) {
+// 		if (err) {
+// 			global.logger.error({ "S3UploadToBucket failed to upload:": { Key: bucketParams.Key, Bucket: bucketParams.Bucket } });
+// 		}
+// 		if (data) {
+// 			console.log("Upload Success", data.Location);
+// 		}
+// 	});
+// };
 /*
 	global.logger
 */

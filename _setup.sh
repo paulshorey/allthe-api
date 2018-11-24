@@ -13,14 +13,21 @@ echo "CMD_V" >> /www-node-secrets.js;   # <<< PASTE ON REMOTE
 ######################
 ############
 ###
-# AND ON GITHUB
+# ON GITHUB
 set up webhook to HOST_NAME:9999/_deploy
+
 
 #################################
 ######################
 ############
 ###
-# THEN <<<< ON REMOTE, REPLACE STRING BELOW WITH SSH PRIVATE KEY:
+# THEN, DO ALL THE FOLLOWING, BUT LOOK OUT FOR ${}
+
+###
+# DEPLOY
+ufw allow 9999;
+echo "
+@reboot root bash /www/_cron/deploy.sh" >> /etc/crontab;
 
 ###
 # SSH KEY + GIT
@@ -61,11 +68,6 @@ curl -sL https://deb.nodesource.com/setup_10.x -o nodesource_setup.sh;
 bash nodesource_setup.sh;
 apt install nodejs;
 npm install -g pm2;
-
-###
-# /etc/crontab
-echo "
-@reboot root bash /www/_cron/deploy.sh" >> /etc/crontab;
 
 ###
 # ~/.zprofile
