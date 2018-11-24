@@ -2,7 +2,7 @@
 	process.env
 */
 process.env.PATH = __dirname;
-process.env.PORT = 1080;
+process.env.PORT = "1080";
 const DEV = process.env.NODE_ENV === "development";
 /*
 	global.shh
