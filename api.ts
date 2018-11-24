@@ -7,7 +7,7 @@ const DEV = process.env.NODE_ENV === "development";
 /*
 	global.shh
 */
-global.shh = require("/www/secret/all.js"); // not on GitHub!
+global.shh = require("../www-node-secrets.js"); // not on GitHub!
 /*
 	global.rqr
 */
