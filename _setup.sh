@@ -3,8 +3,10 @@
 ############
 ###
 # FIRST
-pbcopy < ~/.ssh/newssh              # <<< COPY ON LOCAL
-echo "CMD_V" >> ~/.ssh/newssh       # <<< PASTE ON REMOTE
+pbcopy < ~/.ssh/newssh;                 # <<< COPY ON LOCAL
+echo "CMD_V" >> ~/.ssh/newssh;          # <<< PASTE ON REMOTE
+pbcopy < ~/www-node-secrets.js;         # <<< COPY ON LOCAL
+echo "CMD_V" >> /www-node-secrets.js;   # <<< PASTE ON REMOTE
 
 
 #################################
