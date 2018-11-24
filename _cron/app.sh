@@ -2,11 +2,11 @@
 
 eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/newssh
-cd /www/c.ps
+cd /www
 git reset HEAD -\-hard;
 git pull
 
-cd /www/c.ps
+cd /www
 npm install
 
 pm2 start  app.js -i max

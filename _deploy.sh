@@ -3,7 +3,7 @@
 eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/newssh
 
-cd /www/c.ps
+cd /www
 git reset HEAD -\-hard;
 git pull
 npm install

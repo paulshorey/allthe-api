@@ -2,9 +2,9 @@
 ######################
 ############
 ###
-# FIRST <<<< ON LOCAL:
-pbcopy < ~/.ssh/newssh
-echo "#####" >> ~/.ssh/newssh       ### PASTE ON REMOTE
+# FIRST
+pbcopy < ~/.ssh/newssh              # <<< COPY ON LOCAL
+echo "CMD_V" >> ~/.ssh/newssh       # <<< PASTE ON REMOTE
 
 
 #################################
@@ -12,7 +12,7 @@ echo "#####" >> ~/.ssh/newssh       ### PASTE ON REMOTE
 ############
 ###
 # AND ON GITHUB
-set up webhook to :9999/_deploy
+set up webhook to HOST_NAME:9999/_deploy
 
 #################################
 ######################
@@ -28,7 +28,7 @@ ssh-add ~/.ssh/newssh
 
 ###
 # CODEBASE
-git clone git@github.com:paulshorey/c.ps.git /www
+git clone GIT_SSH_URL /www
 
 ###
 # REMOTE EDITING
@@ -55,7 +55,10 @@ apt install zsh;
 cd /tmp;
 sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)";
 sed -i 's/\<robbyrussell\>/kolo/' ~/.zshrc; source ~/.zshrc;
-sudo apt-get install -y nodejs;
+curl -sL https://deb.nodesource.com/setup_10.x -o nodesource_setup.sh;
+bash nodesource_setup.sh;
+apt install nodejs;
+npm install -g pm2;
 
 ###
 # /etc/crontab

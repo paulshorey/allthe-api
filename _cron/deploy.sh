@@ -4,7 +4,7 @@ sleep 30
 
 eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/newssh
-cd /www/c.ps
+cd /www
 git reset HEAD -\-hard;
 git pull
 
