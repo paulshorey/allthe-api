@@ -5,6 +5,7 @@
   "dependencies": {
     "bcrypt": "^3.0.2",
     "express": "^4.16.4",
+    "logdna": "^2.0.4",
     "mongoose": "^5.3.13"
   }
 }
