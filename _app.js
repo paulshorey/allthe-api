@@ -26,15 +26,15 @@ const log_db_status = function(mongoose) {
 const mongoose = require('mongoose');
 const Mongoose = mongoose.Mongoose;
 const ObjectID = mongoose.ObjectID;
-(new Mongoose()).connect("mongodb://" + SHH.mongodb.user + ":" + SHH.mongodb.pwd + "@localhost/" + "aggregators", { useNewUrlParser: true }).then(function(mongoose_instance){
+(new Mongoose()).connect("mongodb://" + SHH.mongod.user + ":" + SHH.mongod.pwd + "@localhost/" + "aggregators", { useNewUrlParser: true }).then(function(mongoose_instance){
 	log_db_status(mongoose_instance);
 	global.mongoose_aggregators = mongoose_instance;
 });
-(new Mongoose()).connect("mongodb://" + SHH.mongodb.user + ":" + SHH.mongodb.pwd + "@localhost/" + "results", { useNewUrlParser: true }).then(function(mongoose_instance){
+(new Mongoose()).connect("mongodb://" + SHH.mongod.user + ":" + SHH.mongod.pwd + "@localhost/" + "results", { useNewUrlParser: true }).then(function(mongoose_instance){
 	log_db_status(mongoose_instance);
 	global.mongoose_results = mongoose_instance;
 });
-(new Mongoose()).connect("mongodb://" + SHH.mongodb.user + ":" + SHH.mongodb.pwd + "@localhost/" + "sites", { useNewUrlParser: true }).then(function(mongoose_instance){
+(new Mongoose()).connect("mongodb://" + SHH.mongod.user + ":" + SHH.mongod.pwd + "@localhost/" + "sites", { useNewUrlParser: true }).then(function(mongoose_instance){
 	log_db_status(mongoose_instance);
 	global.mongoose_sites = mongoose_instance;
 });
