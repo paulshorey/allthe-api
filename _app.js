@@ -26,15 +26,15 @@ const log_db_status = function(mongoose) {
 const mongoose = require('mongoose');
 const Mongoose = mongoose.Mongoose;
 const ObjectID = mongoose.ObjectID;
-(new Mongoose()).connect("mongodb://" + SHH.mongodb["aggregators"].user + ":" + SHH.mongodb["aggregators"].pwd + "@localhost/" + "aggregators", { useNewUrlParser: true }).then(function(mongoose_instance){
+(new Mongoose()).connect("mongodb://" + SHH.mongodb.user + ":" + SHH.mongodb.pwd + "@localhost/" + "aggregators", { useNewUrlParser: true }).then(function(mongoose_instance){
 	log_db_status(mongoose_instance);
 	global.mongoose_aggregators = mongoose_instance;
 });
-(new Mongoose()).connect("mongodb://" + SHH.mongodb["results"].user + ":" + SHH.mongodb["results"].pwd + "@localhost/" + "results", { useNewUrlParser: true }).then(function(mongoose_instance){
+(new Mongoose()).connect("mongodb://" + SHH.mongodb.user + ":" + SHH.mongodb.pwd + "@localhost/" + "results", { useNewUrlParser: true }).then(function(mongoose_instance){
 	log_db_status(mongoose_instance);
 	global.mongoose_results = mongoose_instance;
 });
-(new Mongoose()).connect("mongodb://" + SHH.mongodb["sites"].user + ":" + SHH.mongodb["sites"].pwd + "@localhost/" + "sites", { useNewUrlParser: true }).then(function(mongoose_instance){
+(new Mongoose()).connect("mongodb://" + SHH.mongodb.user + ":" + SHH.mongodb.pwd + "@localhost/" + "sites", { useNewUrlParser: true }).then(function(mongoose_instance){
 	log_db_status(mongoose_instance);
 	global.mongoose_sites = mongoose_instance;
 });
@@ -47,7 +47,7 @@ const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 const express_app = require("express")();
 express_app.use(function(request, response, next) {
-	response.setHeader("Access-Control-Allow-Origin", "*"); // CHANGE THIS BEFORE ADDING SENSITIVE DATA!
+	response.setHeader("Access-Control-Allow-Origin", "*"); // CHANGE THIS BEFORE ADDING SENSITIVE DATsA!
 	response.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
 	response.setHeader("Access-Control-Allow-Headers", "Content-Type, Cache-Control, Pragma, Authorization, Content-Length, X-Requested-With, X-Host");
 	if ("OPTIONS" == request.method) {
