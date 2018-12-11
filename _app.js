@@ -1,6 +1,6 @@
 const PORT = "1080";
 const DEBUG_DB = true;
-const SHH = require("../../www-node-secrets.js");
+const SHH = require("../www-node-secrets.js");
 const DEV = true;
 const BCRYPT_SALT_ROUNDS = 12;
 
