@@ -1,4 +1,5 @@
 const PORT = "1080";
+/* test */
 const DEBUG_DB = true;
 const SHH = require("/www-node-secrets.js");
 const DEV = true;
@@ -9,12 +10,11 @@ const BCRYPT_SALT_ROUNDS = 12;
 /***
  * DB
  */
-//mongodb+srv://pshorey:<PASSWORD>@allthe-api-cluster-lylz1.mongodb.net/test?retryWrites=true
 const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
 
 // Connection URL
-const url = 'mongodb+srv://pshorey:hu88HU**@allthe-api-cluster-lylz1.mongodb.net/test?retryWrites=true';
+const url = 'mongodb+srv://'+encodeURI(SHH.mongodb.user)+':'+encodeURI(SHH.mongodb.pwd)+'@allthe-api-cluster-lylz1.mongodb.net/test?retryWrites=true';
 
 // Database Name
 const dbName = 'aggregators';
@@ -39,7 +39,6 @@ client.connect(function(err) {
 
 	client.close();
 });
-
 
 
 /***
@@ -100,58 +99,119 @@ express_app.use(bodyParser.urlencoded({ extended: true }));
 // });
 
 
+
+
+/***
+* EXPRESS APP ~ HTTP_RESPONSE
+*/
+const http_response = function(response, statusCode, data) {
+	response.setHeader("Content-Type", "application/json");
+	response.writeHead(statusCode);
+	let output = {};
+	if (statusCode < 300) { // success
+		output.data = data;
+	} else { // error
+		output.error = data;
+	}
+	response.write(JSON.stringify(output, null, "\t"));
+	response.end();
+}
+
+
 /***
 * EXPRESS APP ~ AUTH ~ NEW USER
 */
-express_app.post('/register', function (req, res, next) {
+express_app.post('/auth/register', function (req, res, next) {
 	//
 	// generate hashed password
 	bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS)
-		// 
-		// save user account
-		.then(function(hashedPassword) {
-			global.mongoose_aggregators.connection.collection('all').insertOne({email:req.body.email, password:hashedPassword, title:"test1"}, function(err, data) {
-				console.log('saved');
-				console.log(err);
-				console.log(data);
-			})
-		})
-		//
-		// output
-		.then(function() {
-			res.send();
+	.then(function(hashedPassword) {
+		global.mongoose_aggregators.connection.collection('all').insertOne({email:req.body.email, password:hashedPassword, title:"test1"}, function(err, data) {
+			if (err) {
+				http_response(res, 500, { "mongoose insertOne if" : err });
+			} else {
+				http_response(res, 200, data);
+			}
 		})
 		.catch(function(error){
-			console.log("Error saving user: ");
-			console.log(error);
-			next();
+			http_response(res, 500, { "mongoose insertOne catch" : error });
 		});
+	})
+	.catch(function(error){
+		http_response(res, 500, { "password" : error });
+	});
 });
 
 
 /***
 * EXPRESS APP ~ AUTH ~ LOGIN
 */
-express_app.post('/login', function (req, res, next) {
+express_app.post('/auth/login', function (req, res, next) {
+  //
+  // find user
+  // global.mongoose_aggregators.connection.collection('all').findOne({email:req.body.email}, function(err, user) {
+  global.Aggregator.findOne({email:req.body.email}, function(err, user) {
+    //
+    // compare password
+    bcrypt.compare(req.body.password, (user && user.password))
+    .then(function(samePassword) {
+        if(!samePassword) {
+			http_response(res, 403, { "password" : "password does not match records" });
+        } else {
+        	delete user.password;
+			http_response(res, 200, { "user" : user });
+        }
+    })
+    .catch(function(error){
+		http_response(res, 403, { "password" : error });
+    });
+  });
+});
+
+
+/***
+* EXPRESS APP ~ AUTH ~ CHANGE PASSWORD
+*/
+express_app.post('/auth/password', function (req, res, next) {
   //
   // find user
   global.mongoose_aggregators.connection.collection('all').findOne({email:req.body.email}, function(err, user) {
-	//
-	// compare password
-	bcrypt.compare(req.body.password, user.password)
-	//
-	// output
-	.then(function(samePassword) {
-		if(!samePassword) {
-			res.status(403).send();
-		}
-		res.send();
-	})
-	.catch(function(error){
-		console.log("Error authenticating user: ");
-		console.log(error);
-		next();
-	});
+    //
+    // compare password
+    bcrypt.compare(req.body.password, (user && user.password))
+    .then(function(samePassword) {
+        if(!samePassword) {
+			http_response(res, 403, { "password" : "password does not match records" });
+        } else {
+        	
+
+
+        	//
+			// generate NEW hashed password
+			bcrypt.hash(req.body.password2, BCRYPT_SALT_ROUNDS)
+				.then(function(hashedPassword) {
+					global.mongoose_aggregators.connection.collection('all').updateOne({filter:{_id:req.body._id},update:{$set:{password:hashedPassword}}}, function(err, data) {
+						if (err) {
+							http_response(res, 500, { "mongoose updateOne if" : err });
+						} else {
+							http_response(res, 200, data);
+						}
+					})
+					.catch(function(error){
+						http_response(res, 500, { "mongoose updateOne catch" : error });
+					});
+				})
+				.catch(function(error){
+					http_response(res, 500, { "password" : error });
+				});
+
+
+
+        }
+    })
+    .catch(function(error){
+		http_response(res, 403, { "password" : error });
+    });
   });
 });
 
@@ -197,4 +257,5 @@ function onError(error) {
 }
 server.on('error', onError);
 server.on('listening', onListening);
+server.timeout = 1000;
 server.listen(PORT);
