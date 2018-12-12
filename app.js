@@ -1,3 +1,4 @@
+const fs = require("fs");
 const PORT = "1080";
 /* test */
 const DEBUG_DB = true;
@@ -224,24 +225,14 @@ express_app.post('/auth/password', function (req, res, next) {
 /***
 * SERVE
 */
-var http = require('http');
-var server = http.createServer(express_app);
-function onListening() {
-  var addr = server.address();
-  var bind = typeof addr === 'string'
-	? 'pipe ' + addr
-	: 'port ' + addr.port;
-  console.log('\nListening on ' + bind + '\n');
-}
 function onError(error) {
   if (error.syscall !== 'listen') {
 	throw error;
   }
   var bind = typeof port === 'string'
 	? 'Pipe ' + port
-	: 'Port ' + port;
-
-  // handle specific listen errors with friendly messages
+	: 'Port ' + port
+  ;
   switch (error.code) {
 	case 'EACCES':
 	  console.error(bind + ' requires elevated privileges');
@@ -255,7 +246,33 @@ function onError(error) {
 	  throw error;
   }
 }
-server.on('error', onError);
-server.on('listening', onListening);
-server.timeout = 1000;
-server.listen(PORT);
+
+// HTTP
+const http = require('http');
+const httpServer = http.createServer(express_app);
+httpServer.on('error', onError);
+httpServer.listen(1080, () => {
+	console.log('HTTP Server running on port 1080');
+});
+
+// HTTPS
+try {
+	const privateKey = fs.readFileSync('/etc/letsencrypt/live/yourdomain.com/privkey.pem', 'utf8');
+	if (privateKey) {
+		const certificate = fs.readFileSync('/etc/letsencrypt/live/yourdomain.com/cert.pem', 'utf8');
+		const ca = fs.readFileSync('/etc/letsencrypt/live/yourdomain.com/chain.pem', 'utf8');
+		const credentials = {
+			key: privateKey,
+			cert: certificate,
+			ca: ca
+		};
+		const https = require('https');
+		const httpsServer = https.createServer(credentials, express_app);
+		httpsServer.on('error', onError);
+		httpsServer.listen(1443, () => {
+			console.log('HTTPS Server running on port 1443');
+		});
+	}
+} catch(e) {
+	console.log('\n\nNO HTTPS key files found. Guessing this is a dev environment.\n\n');
+}
