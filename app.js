@@ -1,54 +1,47 @@
 const fs = require("fs");
 const PORT = "1080";
-/* test */
 const DEBUG_DB = true;
 const SHH = require("/www-node-secrets.js");
 const DEV = true;
-const BCRYPT_SALT_ROUNDS = 12;
-
 
 
 /***
  * DB
  */
+global.m = {}; // will be a dictionary of mongo connections
 const MongoClient = require('mongodb').MongoClient;
-const assert = require('assert');
-
-// Connection URL
-const url = 'mongodb+srv://'+encodeURI(SHH.mongodb.user)+':'+encodeURI(SHH.mongodb.pwd)+'@allthe-api-cluster-lylz1.mongodb.net/test?retryWrites=true';
-
-// Database Name
-const dbName = 'aggregators';
-
-// Create a new MongoClient
-const client = new MongoClient(url);
-
-// Use connect method to connect to the Server
+const client = new MongoClient('mongodb+srv://'+encodeURI(SHH.mongodb.user)+':'+encodeURI(SHH.mongodb.pwd)+'@allthe-api-cluster-lylz1.mongodb.net/test?retryWrites=true&useNewUrlParser=true');
 client.connect(function(err) {
-	assert.equal(null, err);
-	console.log("Connected successfully to server");
 
-	const db = client.db(dbName);
 
-	const collection = db.collection('all');
-	collection.find({}).toArray(function(err, docs) {
-		assert.equal(err, null);
-		console.log("Found the following records");
-		console.log(docs)
-		// callback(docs);
+	/***
+	 * AGGREGATORS
+	 * m.AGGREGATORS.collection('all')
+	 */
+	global.m.AGGREGATORS = client.db('aggregators');
+	// count
+	global.m.AGGREGATORS.collection('all').count({}, function(err, docs) {
+		console.log('\naggregators.all documents:', docs);
 	});
 
-	client.close();
+
+	/***
+	 * CRAWLS
+	 * m.CRAWLERS.collection( user_id )
+	 */
+	global.m.CRAWLERS = client.db('crawls');
+
+
+	// client.close(); // do not close, so we can use this connection in API requests
 });
 
 
 /***
 * EXPRESS APP
 */
-const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
-const express_app = require("express")();
-express_app.use(function(request, response, next) {
+global.express_app = require("express")();
+global.express_app.use(function(request, response, next) {
 	response.setHeader("Access-Control-Allow-Origin", "*"); // CHANGE THIS BEFORE ADDING SENSITIVE DATsA!
 	response.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
 	response.setHeader("Access-Control-Allow-Headers", "Content-Type, Cache-Control, Pragma, Authorization, Content-Length, X-Requested-With, X-Host");
@@ -61,51 +54,14 @@ express_app.use(function(request, response, next) {
 		return;
 	}
 });
-express_app.use(bodyParser.json());
-express_app.use(bodyParser.urlencoded({ extended: true }));
-
-
-/***
- * DB
- */
-// const log_db_status = function(mongoose) {
-// 	if (DEBUG_DB) {
-// 		// connection
-// 		mongoose.connection.db.listCollections().toArray(function (err, collections) {
-// 			collections.forEach(function(collection) {
-// 				// collection
-// 				mongoose.connection.db.collection(collection.name, function(err, coll) {
-// 					coll.countDocuments({}, function(error, count) {
-// 						console.log(mongoose.connection.name + "."+ collection.name + " has " + count + " documents");
-// 					});
-// 				});
-// 			});	
-// 		});
-// 	}
-// };
-// const mongoose = require('mongoose');
-// const Mongoose = mongoose.Mongoose;
-// const ObjectID = mongoose.ObjectID;
-// (new Mongoose()).connect("mongodb://" + SHH.mongod.user + ":" + SHH.mongod.pwd + "@localhost/" + "aggregators", { useNewUrlParser: true }).then(function(mongoose_instance){
-// 	log_db_status(mongoose_instance);
-// 	global.mongoose_aggregators = mongoose_instance;
-// });
-// (new Mongoose()).connect("mongodb://" + SHH.mongod.user + ":" + SHH.mongod.pwd + "@localhost/" + "results", { useNewUrlParser: true }).then(function(mongoose_instance){
-// 	log_db_status(mongoose_instance);
-// 	global.mongoose_results = mongoose_instance;
-// });
-// (new Mongoose()).connect("mongodb://" + SHH.mongod.user + ":" + SHH.mongod.pwd + "@localhost/" + "sites", { useNewUrlParser: true }).then(function(mongoose_instance){
-// 	log_db_status(mongoose_instance);
-// 	global.mongoose_sites = mongoose_instance;
-// });
-
-
+global.express_app.use(bodyParser.json());
+// global.express_app.use(bodyParser.urlencoded({ extended: true }));
 
 
 /***
 * EXPRESS APP ~ HTTP_RESPONSE
 */
-const http_response = function(response, statusCode, data) {
+global.http_response = function(response, statusCode, data) {
 	response.setHeader("Content-Type", "application/json");
 	response.writeHead(statusCode);
 	let output = {};
@@ -119,104 +75,13 @@ const http_response = function(response, statusCode, data) {
 }
 
 
-/***
-* EXPRESS APP ~ AUTH ~ NEW USER
-*/
-express_app.post('/auth/register', function (req, res, next) {
-	//
-	// generate hashed password
-	bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS)
-	.then(function(hashedPassword) {
-		global.mongoose_aggregators.connection.collection('all').insertOne({email:req.body.email, password:hashedPassword, title:"test1"}, function(err, data) {
-			if (err) {
-				http_response(res, 500, { "mongoose insertOne if" : err });
-			} else {
-				http_response(res, 200, data);
-			}
-		})
-		.catch(function(error){
-			http_response(res, 500, { "mongoose insertOne catch" : error });
-		});
-	})
-	.catch(function(error){
-		http_response(res, 500, { "password" : error });
-	});
-});
+
 
 
 /***
-* EXPRESS APP ~ AUTH ~ LOGIN
+* API ENDPOINTS
 */
-express_app.post('/auth/login', function (req, res, next) {
-  //
-  // find user
-  // global.mongoose_aggregators.connection.collection('all').findOne({email:req.body.email}, function(err, user) {
-  global.Aggregator.findOne({email:req.body.email}, function(err, user) {
-    //
-    // compare password
-    bcrypt.compare(req.body.password, (user && user.password))
-    .then(function(samePassword) {
-        if(!samePassword) {
-			http_response(res, 403, { "password" : "password does not match records" });
-        } else {
-        	delete user.password;
-			http_response(res, 200, { "user" : user });
-        }
-    })
-    .catch(function(error){
-		http_response(res, 403, { "password" : error });
-    });
-  });
-});
-
-
-/***
-* EXPRESS APP ~ AUTH ~ CHANGE PASSWORD
-*/
-express_app.post('/auth/password', function (req, res, next) {
-  //
-  // find user
-  global.mongoose_aggregators.connection.collection('all').findOne({email:req.body.email}, function(err, user) {
-    //
-    // compare password
-    bcrypt.compare(req.body.password, (user && user.password))
-    .then(function(samePassword) {
-        if(!samePassword) {
-			http_response(res, 403, { "password" : "password does not match records" });
-        } else {
-        	
-
-
-        	//
-			// generate NEW hashed password
-			bcrypt.hash(req.body.password2, BCRYPT_SALT_ROUNDS)
-				.then(function(hashedPassword) {
-					global.mongoose_aggregators.connection.collection('all').updateOne({filter:{_id:req.body._id},update:{$set:{password:hashedPassword}}}, function(err, data) {
-						if (err) {
-							http_response(res, 500, { "mongoose updateOne if" : err });
-						} else {
-							http_response(res, 200, data);
-						}
-					})
-					.catch(function(error){
-						http_response(res, 500, { "mongoose updateOne catch" : error });
-					});
-				})
-				.catch(function(error){
-					http_response(res, 500, { "password" : error });
-				});
-
-
-
-        }
-    })
-    .catch(function(error){
-		http_response(res, 403, { "password" : error });
-    });
-  });
-});
-
-
+require('./api/auth.js');
 
 
 
@@ -246,15 +111,13 @@ function onError(error) {
 	  throw error;
   }
 }
-
 // HTTP
 const http = require('http');
-const httpServer = http.createServer(express_app);
+const httpServer = http.createServer(global.express_app);
 httpServer.on('error', onError);
 httpServer.listen(1080, () => {
 	console.log('HTTP Server running on port 1080');
 });
-
 // HTTPS
 try {
 	const privateKey = fs.readFileSync('/etc/letsencrypt/live/yourdomain.com/privkey.pem', 'utf8');
@@ -267,12 +130,12 @@ try {
 			ca: ca
 		};
 		const https = require('https');
-		const httpsServer = https.createServer(credentials, express_app);
+		const httpsServer = https.createServer(credentials, global.express_app);
 		httpsServer.on('error', onError);
 		httpsServer.listen(1443, () => {
 			console.log('HTTPS Server running on port 1443');
 		});
 	}
 } catch(e) {
-	console.log('\n\nNO HTTPS key files found. Guessing this is a dev environment.\n\n');
+	console.log('\nNO HTTPS key files found. Guessing this is a dev environment.\n');
 }
