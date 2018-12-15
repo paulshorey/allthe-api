@@ -22,18 +22,26 @@ global.express_app.post('/auth/register', function (req, res, next) {
 			} else {
 				//
 				// success
-				var agg_id = data.insertedIds[0];
-				console.log('created aggregator _id:',(typeof agg_id),(typeof agg_id+""));
+				var acc_id = data.insertedIds[0];
+				console.log('created aggregator _id:',(typeof acc_id),(typeof acc_id+""));
 
 				/***
 				* ADD NEW CRAWLER COLLECTION
 				*/
-				global.m.CRAWLERS.createCollection(agg_id+'', (error , collection) => {
+				global.m.CRAWLERS.createCollection(acc_id+'', (error , collection) => {
 					if (error) {
 						global.http_response(res, 403, { "mongoDB createCollection" : error });
 					} else {
 						console.log("Details collection created successfully");
-						global.http_response(res, 200, "collection created successfully");
+					  global.m.AGGREGATORS.collection('all').findOne({_id:acc_id}, function(err, user) {
+			  	  	if(!user) {
+			  				global.http_response(res, 403, { "user _id" : "something went wrong" });
+			  				return false;
+			  			} else {
+			        	delete user.password;
+								global.http_response(res, 200, user);
+							}
+					  });
 					}
 				});
 			}
@@ -51,16 +59,24 @@ global.express_app.post('/auth/login', function (req, res, next) {
   // global.mongoDB_aggregators.connection.collection('all').findOne({email:req.body.email}, function(err, user) {
   // global.Aggregator.findOne({email:req.body.email}, function(err, user) {
   global.m.AGGREGATORS.collection('all').findOne({email:req.body.email}, function(err, user) {
+  	if(!user) {
+			global.http_response(res, 403, { "email" : "email not found" });
+			return false;
+		}
     //
     // compare password
     bcrypt.compare(req.body.password, (user && user.password))
     .then(function(samePassword) {
         if(!samePassword) {
-			global.http_response(res, 403, { "password" : "password does not match records" });
+					global.http_response(res, 403, { "password" : "password does not match records" });
         } else {
         	delete user.password;
-			global.http_response(res, 200, { "user" : user });
+					global.http_response(res, 200, user);
         }
+    })
+    .catch(function(error) {
+    	global.http_response(res, 500, { "bcrypt" : error });
+    	console.log('\nerror',error,'\n');
     })
   });
 });
@@ -88,7 +104,8 @@ global.express_app.post('/auth/password', function (req, res, next) {
 					if (err) {
 						global.http_response(res, 500, { "mongoDB updateOne if" : err });
 					} else {
-						global.http_response(res, 200, data.result);
+        		delete user.password;
+						global.http_response(res, 200, user);
 					}
 				})
 			})
