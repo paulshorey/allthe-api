@@ -15,21 +15,21 @@ client.connect(function(err) {
 
 
 	/***
-	 * AGGREGATORS
-	 * m.AGGREGATORS.collection('all')
+	 * ACCOUNTS
+	 * m.ACCOUNTS.collection('all')
 	 */
-	global.m.AGGREGATORS = client.db('aggregators');
+	global.m.ACCOUNTS = client.db('accounts');
 	// count
-	global.m.AGGREGATORS.collection('all').count({}, function(err, docs) {
-		console.log('\naggregators.all documents:', docs);
+	global.m.ACCOUNTS.collection('all').count({}, function(err, docs) {
+		console.log('\naccounts.all documents:', docs);
 	});
 
 
 	/***
-	 * CRAWLS
-	 * m.CRAWLERS.collection( user_id )
+	 * AGGREGATORS
+	 * m.AGGREGATORS.collection( user_id )
 	 */
-	global.m.CRAWLERS = client.db('crawls');
+	global.m.AGGREGATORS = client.db('crawlers');
 
 
 	// client.close(); // do not close, so we can use this connection in API requests
@@ -81,7 +81,7 @@ global.http_response = function(response, statusCode, data) {
 /***
 * API ENDPOINTS
 */
-require('./api/auth.js');
+require('./api/account.js');
 
 
 
