@@ -4,32 +4,48 @@ const DEBUG_DB = true;
 const SHH = require("/www-node-secrets.js");
 const DEV = true;
 
-
 /***
  * DB
  */
 global.m = {}; // will be a dictionary of mongo connections
 const MongoClient = require('mongodb').MongoClient;
-const client = new MongoClient('mongodb+srv://'+encodeURI(SHH.mongodb.user)+':'+encodeURI(SHH.mongodb.pwd)+'@allthe-api-cluster-lylz1.mongodb.net/test?retryWrites=true&useNewUrlParser=true');
+const client = new MongoClient('mongodb+srv://'+encodeURI(SHH.mongo_atlas.user)+':'+encodeURI(SHH.mongo_atlas.pwd)+'@allthe-api-cluster-lylz1.mongodb.net/test?retryWrites=true');
+// const client = new MongoClient('mongodb://'+encodeURI(SHH.mongo_local.user)+':'+encodeURI(SHH.mongo_local.pwd)+'@api.jsjobs.us?retryWrites=true&useNewUrlParser=true');
 client.connect(function(err) {
-
-
+	if (err) {
+		console.error('\nMongoDB client.connect error:',err);
+		return;
+	}
 	/***
-	 * ACCOUNTS
-	 * m.ACCOUNTS.collection('all')
+	 * ACCOUNT
+	 * m.ACCOUNT.collection('all')
 	 */
-	global.m.ACCOUNTS = client.db('accounts');
+	global.m.ACCOUNT = client.db('account');
 	// count
-	global.m.ACCOUNTS.collection('all').count({}, function(err, docs) {
-		console.log('\naccounts.all documents:', docs);
+	global.m.ACCOUNT.collection('admin').count({}, function(err, docs) {
+		console.log('\naccount.admin documents:', docs);
 	});
 
 
 	/***
-	 * AGGREGATORS
-	 * m.AGGREGATORS.collection( user_id )
+	 * AGGREGATOR
+	 * m.AGGREGATOR.collection( user_id )
 	 */
-	global.m.AGGREGATORS = client.db('crawlers');
+	global.m.AGGREGATOR = client.db('aggregator');
+
+
+	/***
+	 * CRAWLER
+	 * m.CRAWLER.collection( user_id )
+	 */
+	global.m.CRAWLER = client.db('crawler');
+
+
+	/***
+	 * RESULT
+	 * m.RESULT.collection( user_id )
+	 */
+	global.m.RESULT = client.db('result');
 
 
 	// client.close(); // do not close, so we can use this connection in API requests
@@ -42,7 +58,7 @@ client.connect(function(err) {
 const bodyParser = require('body-parser');
 global.express_app = require("express")();
 global.express_app.use(function(request, response, next) {
-	response.setHeader("Access-Control-Allow-Origin", "*"); // CHANGE THIS BEFORE ADDING SENSITIVE DATsA!
+	response.setHeader("Access-Control-Allow-Origin", "*");
 	response.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
 	response.setHeader("Access-Control-Allow-Headers", "Content-Type, Cache-Control, Pragma, Authorization, Content-Length, X-Requested-With, X-Host");
 	if ("OPTIONS" == request.method) {
@@ -82,6 +98,7 @@ global.http_response = function(response, statusCode, data) {
 * API ENDPOINTS
 */
 require('./api/account.js');
+require('./api/aggregator.js');
 
 
 
@@ -139,3 +156,14 @@ try {
 } catch(e) {
 	console.log('\nNO HTTPS key files found. Guessing this is a dev environment.\n');
 }
+
+
+
+
+
+/***
+* EXIT
+*/
+process.on('exit', function(code) {  
+    return console.log(`About to exit with code ${code}`);
+});
