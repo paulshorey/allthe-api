@@ -5,7 +5,41 @@ const SHH = require("/www-node-secrets.js");
 const DEV = true;
 
 /***
- * DB
+
+DB = "ACCOUNT"
+
+	collection=`admin` 
+		[ 
+			_id, _access_token, _access_token_expires, 
+			email, password 
+		]
+	
+	collection=`aggregator` 
+		[ 
+			_id, _account_id, 
+			title
+		]
+
+	collection=`crawler` 
+		[ 
+			_id, _account_id, _aggregator_id, 
+			site_url, site_title, site_favicon, site_screenshot,
+			crawl_puppeteer_code, crawl_enabled, crawl_frequency,
+			crawled_time, crawled_attempts, 
+			result_...custom...
+		]
+
+DB = "RESULT"
+
+	collection=`${aggregator_id}` 
+		[ 
+			_id, _aggregator_id, _crawler_id, 
+			site_title, site_url, 
+			time_added,
+			...custom...
+		]
+
+
  */
 global.m = {}; // will be a dictionary of mongo connections
 const MongoClient = require('mongodb').MongoClient;
@@ -97,7 +131,9 @@ global.http_response = function(response, statusCode, data) {
 /***
 * API ENDPOINTS
 */
-require('./api/account.js');
+require('./api/account_admin.js');
+require('./api/account_aggregator.js');
+require('./api/account_crawler.js');
 require('./api/aggregator.js');
 
 
