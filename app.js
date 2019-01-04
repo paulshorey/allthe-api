@@ -3,23 +3,19 @@ const PORT = "1080";
 const DEBUG_DB = true;
 const SHH = require("/www-node-secrets.js");
 const DEV = true;
-
 /***
 
 DB = "ACCOUNT"
-
 	collection=`admin` 
 		[ 
 			_id, _access_token, _access_token_expires, 
 			email, password 
 		]
-	
 	collection=`aggregator` 
 		[ 
 			_id, _account_id, 
 			title
 		]
-
 	collection=`crawler` 
 		[ 
 			_id, _account_id, _aggregator_id, 
@@ -30,7 +26,6 @@ DB = "ACCOUNT"
 		]
 
 DB = "RESULT"
-
 	collection=`${aggregator_id}` 
 		[ 
 			_id, _aggregator_id, _crawler_id, 
@@ -39,8 +34,7 @@ DB = "RESULT"
 			...custom...
 		]
 
-
- */
+*/
 global.m = {}; // will be a dictionary of mongo connections
 const MongoClient = require('mongodb').MongoClient;
 const client = new MongoClient('mongodb+srv://'+encodeURI(SHH.mongo_atlas.user)+':'+encodeURI(SHH.mongo_atlas.pwd)+'@allthe-api-cluster-lylz1.mongodb.net/test?retryWrites=true');
@@ -50,36 +44,30 @@ client.connect(function(err) {
 		console.error('\nMongoDB client.connect error:',err);
 		return;
 	}
+
 	/***
-	 * ACCOUNT
-	 * m.ACCOUNT.collection('all')
+	 * ACCOUNT DB
 	 */
 	global.m.ACCOUNT = client.db('account');
-	// count
+	// count documents in each collection
 	global.m.ACCOUNT.collection('admin').count({}, function(err, docs) {
 		console.log('\naccount.admin documents:', docs);
 	});
-
-
-	/***
-	 * AGGREGATOR
-	 * m.AGGREGATOR.collection( user_id )
-	 */
-	global.m.AGGREGATOR = client.db('aggregator');
-
+	global.m.ACCOUNT.collection('aggregator').count({}, function(err, docs) {
+		console.log('\naccount.aggregator documents:', docs);
+	});
+	global.m.ACCOUNT.collection('crawler').count({}, function(err, docs) {
+		console.log('\naccount.crawler documents:', docs);
+	});
 
 	/***
-	 * CRAWLER
-	 * m.CRAWLER.collection( user_id )
-	 */
-	global.m.CRAWLER = client.db('crawler');
-
-
-	/***
-	 * RESULT
-	 * m.RESULT.collection( user_id )
+	 * RESULT DB
 	 */
 	global.m.RESULT = client.db('result');
+	// count documents in each collection
+	// global.m.ACCOUNT.collection('admin').count({}, function(err, docs) {
+	// 	console.log('\naccount.admin documents:', docs);
+	// });
 
 
 	// client.close(); // do not close, so we can use this connection in API requests
@@ -134,7 +122,7 @@ global.http_response = function(response, statusCode, data) {
 require('./api/account_admin.js');
 require('./api/account_aggregator.js');
 require('./api/account_crawler.js');
-require('./api/aggregator.js');
+require('./api/results.js');
 
 
 
